@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>倒计时说我爱你</title>
+
+    <style>
+
+        :root {
+
+            --glass-bg: rgba(255, 255, 255, 0.88);
+
+            --main-accent: #7ca8f0;
+
+            --text-dark: #3a4a63;
+
+            --art-blue: #5d9eff;
+
+        }
+
+        body, html {
+
+            margin: 0; padding: 0;
+
+            width: 100%; height: 100%;
+
+            overflow: hidden;
+
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+
+        }
+
+        #game-container {
+
+            width: 100%; height: 100%;
+
+            position: relative;
+
+            background-size: cover;
+
+            background-position: center;
+
+        }
+
+        .art-font { font-family: "STKaiti", "KaiTi", cursive; }
+
+        .top-nav { position: absolute; top: 20px; right: 20px; z-index: 500; }
+
+        .menu-btn {
+
+            background: var(--glass-bg); border: 1px solid var(--main-accent);
+
+            color: var(--text-dark); padding: 5px 15px;
+
+            cursor: pointer; border-radius: 4px; font-size: 13px;
+
+            backdrop-filter: blur(5px);
+
+        }
+
+        .dropdown {
+
+            display: none; position: absolute; right: 0; top: 35px;
+
+            background: var(--glass-bg); border: 1px solid var(--main-accent);
+
+            min-width: 100px; backdrop-filter: blur(10px); z-index: 500;
+
+        }
+
+        .dropdown div {
+
+            padding: 10px; cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.05);
+
+            font-size: 12px; text-align: center; color: var(--text-dark);
+
+        }
+
+        .dropdown div:hover { background: var(--main-accent); color: white; }
+
+        .left-bottom-ui {
+
+            position: absolute; 
+
+            bottom: 35%; 
+
+            left: 50%;
+
+            transform: translateX(-50%); 
+
+            display: flex; 
+
+            flex-direction: column; 
+
+            gap: 12px; 
+
+            z-index: 500;
+
+            align-items: center;
+
+        }
+
+        .rect-btn {
+
+            width: 120px; 
+
+            padding: 10px 0;
+
+            background: var(--glass-bg); border: 1px solid var(--main-accent);
+
+            color: var(--text-dark); cursor: pointer;
+
+            text-align: center; font-size: 14px;
+
+            border-radius: 6px;
+
+            backdrop-filter: blur(5px); transition: 0.3s;
+
+        }
+
+        #cover-page {
+
+            position: absolute; width: 100%; height: 100%;
+
+            z-index: 400; display: flex; flex-direction: column; align-items: center;
+
+            padding-top: 18vh;
+
+            background-image: url('https://pic1.imgdb.cn/item/696f8301b931ecccdc5b7002.jpg');
+
+            background-size: cover; background-position: center;
+
+        }
+
+        .title {
+
+            font-size: 38px; color: var(--art-blue); font-weight: bold;
+
+            white-space: nowrap; letter-spacing: 6px;
+
+            text-shadow: 0 0 10px #fff, 0 0 15px #fff; 
+
+        }
+
+        #game-play { display: none; width: 100%; height: 100%; position: relative; }
+
+        
+
+        #char-container {
+
+            position: absolute;
+
+            bottom: 45px;
+
+            left: 10%;   
+
+            width: 40%;
+
+            height: 75%;
+
+            display: flex;
+
+            justify-content: flex-start;
+
+            align-items: flex-end;
+
+            pointer-events: none;
+
+            z-index: 50;
+
+        }
+
+        #char-img {
+
+            height: 100%;
+
+            transition: opacity 0.4s ease;
+
+            opacity: 0;
+
+        }
+
+        .ui-layer { position: absolute; bottom: 45px; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 100; }
+
+        .text-window {
+
+            width: 80%; max-width: 600px; min-height: 70px;
+
+            background: var(--glass-bg); border: 1px solid white;
+
+            border-radius: 4px; padding: 18px 25px; position: relative;
+
+            backdrop-filter: blur(10px);
+
+        }
+
+        .speaker-name {
+
+            position: absolute; top: -22px; left: 15px;
+
+            background: var(--main-accent); color: white;
+
+            padding: 4px 25px; font-size: 16px; font-weight: bold;
+
+        }
+
+        .content-text { font-size: 15px; line-height: 1.6; color: var(--text-dark); }
+
+        .next-trigger {
+
+            position: absolute; bottom: 8px; right: 15px;
+
+            color: var(--main-accent); font-size: 11px; font-weight: bold; cursor: pointer;
+
+        }
+
+        #options-box { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+
+        .option-item {
+
+            background: var(--glass-bg); padding: 10px 40px;
+
+            border-radius: 20px; border: 1px solid var(--main-accent);
+
+            cursor: pointer; font-size: 13px; text-align: center;
+
+        }
+
+        #end-page {
+
+            display: none; position: absolute; width: 100%; height: 100%; z-index: 600;
+
+            flex-direction: column; justify-content: flex-start; align-items: center;
+
+            padding-top: 20vh; 
+
+            background-image: url('https://pic1.imgdb.cn/item/696f8301b931ecccdc5b7002.jpg');
+
+            background-size: cover; background-position: center;
+
+        }
+
+        #final-wish-box {
+
+            background: var(--glass-bg); padding: 40px; border-radius: 12px;
+
+            border: 1px solid var(--main-accent); text-align: center; display: none;
+
+            width: fit-content; max-width: 90%;
+
+            margin-top: 15vh; 
+
+        }
+
+        audio { display: none; }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div id="game-container">
+
+        <audio id="bgm-player" loop preload="auto">
+
+            <source src="https://www.tankhui.cn/music/download?url=video/20260120154601-XKzFA272l0j0/XKzFA272l0j0.mp3" type="audio/mpeg">
+
+        </audio>
+
+        <div class="top-nav" id="in-game-nav" style="display:none;">
+
+            <button class="menu-btn" onclick="toggleMenu('game-drop')">设置</button>
+
+            <div id="game-drop" class="dropdown">
+
+                <div onclick="saveGame()">存档</div>
+
+                <div onclick="toggleMusic()">音樂開關</div>
+
+                <div onclick="backToCover()">退出游戏</div>
+
+            </div>
+
+        </div>
+
+        <div id="cover-page">
+
+            <div class="title art-font">倒计时说我爱你</div>
+
+            <div class="left-bottom-ui">
+
+                <div class="rect-btn" onclick="startGame(true)">开始游戏</div>
+
+                <div class="rect-btn" onclick="toggleMenu('cover-drop')">设置</div>
+
+                <div id="cover-drop" class="dropdown" style="top: 105%; width: 120px;">
+
+                    <div onclick="loadGame()">存档 (继续)</div>
+
+                    <div onclick="toggleMusic()">音乐开/关</div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="game-play">
+
+            <div id="char-container">
+
+                <img id="char-img" src="" alt="立绘">
+
+            </div>
+
+            <div class="ui-layer">
+
+                <div id="options-box"></div>
+
+                <div class="text-window">
+
+                    <div id="name-box" class="speaker-name"></div>
+
+                    <div id="text-content" class="content-text"></div>
+
+                    <div class="next-trigger" id="next-btn" onclick="nextStep()">NEXT ▶</div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="end-page">
+
+            <h2 id="end-title" class="art-font" style="font-size: 30px; color: white; text-shadow: 2px 2px 8px rgba(0,0,0,0.5);">感谢体验～</h2>
+
+            <div id="final-wish-box">
+
+                <p style="color: var(--text-dark); font-size: 19px; margin-bottom: 30px; font-weight: bold; white-space: nowrap;">祝shinmin和所有宝宝们情人节快乐!</p>
+
+                <div class="rect-btn" style="margin: 0 auto;" onclick="backToCover()">退出游戏</div>
+
+            </div>
+
+            <div class="left-bottom-ui" id="end-nav">
+
+                <div class="rect-btn" onclick="showFinalWish()">结束游戏</div>
+
+                <div class="rect-btn" onclick="backToCover()">退出游戏</div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+
+        let currentIndex = 0;
+
+        const bgs = {
+
+            classroom: 'https://pic1.imgdb.cn/item/696f845fb931ecccdc5b702b.jpg',
+
+            gate: 'https://pic1.imgdb.cn/item/696f84a7b931ecccdc5b7036.jpg',
+
+            road: 'https://pic1.imgdb.cn/item/696f8484b931ecccdc5b7034.jpg',
+
+            stand: 'https://pic1.imgdb.cn/item/696f84c1b931ecccdc5b7039.jpg',
+
+            playground: 'https://pic1.imgdb.cn/item/696f84e1b931ecccdc5b703c.jpg'
+
+        };
+
+        const chars = {
+
+            '李京民': 'https://pic1.imgdb.cn/item/696f4a4fb931ecccdc5b3b9d.png',
+
+            '申正焕': 'https://pic1.imgdb.cn/item/696f6302b931ecccdc5b578d.png'
+
+        };
+
+        const story = [
+
+            { text: '放学后的教室只剩下风扇转动的声音。', bg: 'classroom' },
+
+            { text: '夕阳透过窗户，把课桌的影子拉得很长。' },
+
+            { text: '李京民背起书包，校服衣角微微晃了一下。' },
+
+            { text: '就在那一瞬间，申正焕看见了他头顶浮着一个清晰的数字——10。' },
+
+            { text: '申正焕下意識眨了下眼。' },
+
+            { name: '申正焕（内心）', text: '……什么？' },
+
+            { name: '申正焕（内心）', text: '这是什么东西？' },
+
+            { name: '申正焕（内心）', text: '好感度吗？' },
+
+            { text: '他盯着那个数字看了几秒，确认不是幻觉。' },
+
+            { text: '满分?原来京民这么喜欢我啊。' },
+
+            { text: '这个念头刚出现，他自己都愣了一下。' },
+
+            { type: 'option', options: [{ text: '【装作什么都没看见】', next: 'day2_start' }, { text: '【盯着数字多看几秒】', next: 'stare_more' }] },
+
+            { id: 'stare_more', text: '申正焕下意識多看了几眼。' },
+
+            { text: '那个 10 悬在李京民头顶，一點要消失的意思都沒有。' },
+
+            { text: '李京民似乎察覺到視線，抬起頭。' },
+
+            { name: '李京民', text: '“哥，怎麼一直看著我？”' },
+
+            { text: '申正煥猛地回神。' },
+
+            { name: '申正煥', text: '“啊？沒有。”' },
+
+            { text: '他說得太快，又補了一句。' },
+
+            { name: '申正煥', text: '“就是在發呆。”' },
+
+            { name: '李京民', text: '李京民看了他一眼，沒有多問，只是點了點頭。', next: 'day2_start' },
+
+            { id: 'day2_start', text: '第二天早上，申正煥在校門口看見李京民，數字變成了 9。', bg: 'gate' },
+
+            { text: '他腳步慢了一拍，卻沒說什麼。' },
+
+            { id: 'day3_scene', text: '第三天，體育課後，李京民拎著書包往操場外走時，數字變成 8。', bg: 'playground' },
+
+            { text: '申正煥這才意識到，這不是偶然，他開始不自覺地關注李京民的一切。' },
+
+            { text: '上課有沒有回頭，放學是不是馬上走，和誰並肩走出校門。' },
+
+            { type: 'option', options: [{ text: '【問他最近是不是很忙】', next: 'ask_busy' }, { text: '【不問，只靠近】', next: 'just_close' }] },
+
+            { id: 'ask_busy', name: '李京民', text: '“最近社團有點事。”', next: 'classroom_scene' },
+
+            { id: 'just_close', text: '申正煥放學時自然地走到他身邊，李京民沒有避開。', next: 'classroom_scene' },
+
+            { id: 'classroom_scene', text: '放學鈴響完，教室裡只剩下幾個值日生。', bg: 'classroom' },
+
+            { text: '申正煥本來已經背上書包，走到門口又停下。' },
+
+            { name: '申正煥', text: '“你今天值日？”' },
+
+            { name: '李京民', text: '李京民點頭:“嗯。”' },
+
+            { text: '申正煥想了想。' },
+
+            { type: 'option', options: [{ text: '【幫他一起拖地】', next: 'mop_start' }, { text: '【在門口等他】', next: 'wait_start' }] },
+
+            { id: 'mop_start', name: '申正煥', text: '申正煥把書包放回桌上。' },
+
+            { name: '申正煥', text: '“那我也留下來。”' },
+
+            { name: '李京民', text: '“哥不用吧？”' },
+
+            { name: '申正煥', text: '“反正回家也沒事。”' },
+
+            { text: '兩個人一前一後拖地。' },
+
+            { text: '李京民動作很認真，拖得地板一格一格的都很乾淨。' },
+
+            { text: '申正煥卻明顯有點心不在焉。' },
+
+            { text: '幾分鐘後...' },
+
+            { name: '李京民', text: '“哥。”' },
+
+            { name: '申正煥', text: '“嗯？”' },
+
+            { name: '李京民', text: '“你剛剛踩到我拖過的地方了。”' },
+
+            { name: '申正煥', text: '“……是嗎？”' },
+
+            { name: '李京民', text: '李京民指了指地面。' },
+
+            { name: '李京民', text: '“這裡，還有這裡。”' },
+
+            { text: '申正煥看了一眼，輕咳一聲。' },
+
+            { name: '申正煥', text: '“那我下次注意。”' },
+
+            { text: '他說這話的時候，視線卻忍不住又往李京民頭上瞟了一下。' },
+
+            { text: '那個數字還在。', next: 'vending_scene' },
+
+            { id: 'wait_start', text: '申正煥站在門口，沒有離開。' },
+
+            { text: '李京民拖地時抬頭，看見他還在。' },
+
+            { name: '李京民', text: '“哥，你不走嗎？”' },
+
+            { name: '申正煥', text: '“等你一起。”' },
+
+            { name: '李京民', text: '“好，我很快的。”' },
+
+            { name: '申正煥', text: '“沒關係。”' },
+
+            { text: '教室裡只剩下拖把摩擦地面的聲音。' },
+
+            { text: '申正煥靠在門邊，看著李京民認真拖地的背影。' },
+
+            { text: '等值日結束，兩個人一起關燈。' },
+
+            { text: '走出校門時，天已經暗下來。' },
+
+            { name: '李京民', text: '“哥怎麼突然這麼有耐心。”' },
+
+            { name: '申正煥', text: '“這是什麼話，哥難道不是一直都這麼好嗎?”', next: 'vending_scene' },
+
+            { id: 'vending_scene', text: '一起放學路上，兩個人路過校門口的自動販賣機。', bg: 'road' },
+
+            { text: '李京民停下腳步。' },
+
+            { name: '李京民', text: '“我想喝這個。”' },
+
+            { text: '申正煥看了一眼，是平時幾乎沒人買的汽水。' },
+
+            { name: '申正煥', text: '“這個不好喝吧。”' },
+
+            { name: '李京民', text: '“可是我沒喝過，我想嘗嘗。”' },
+
+            { text: '申正煥還是投了錢。“咚”一聲，飲料掉下來.' },
+
+            { name: '李京民', text: '李京民擰開瓶蓋，喝了一口。' },
+
+            { text: '他的表情變得有點複雜。' },
+
+            { text: '李京民沒說話，只是把飲料遞給申正煥。' },
+
+            { type: 'option', options: [{ text: '【接過來喝】', next: 'drink_yes' }, { text: '【肯定很難喝，我不喝】', next: 'drink_no' }] },
+
+            { id: 'drink_yes', name: '申正煥', text: '申正煥接過飲料，抬頭喝了一口。' },
+
+            { name: '申正煥', text: '“……果然很難喝呢。”' },
+
+            { text: '語氣認真得過分。' },
+
+            { name: '李京民', text: '李京民愣了一下，隨即笑出聲。' },
+
+            { name: '李京民', text: '“哥，你怎麼還真的喝了。”' },
+
+            { name: '申正煥', text: '“不是你遞給我的嗎。”' },
+
+            { text: '兩個人站在販賣機前笑了一會兒，' },
+
+            { text: '那瓶飲料再也沒被動過。', next: 'day4_pe' },
+
+            { id: 'drink_no', name: '申正煥', text: '申正煥看著他，搖了搖頭。' },
+
+            { name: '申正煥', text: '“肯定很難喝，我不喝。”' },
+
+            { name: '李京民', text: '李京民愣了一下。' },
+
+            { name: '李京民', text: '“什麼呀。”' },
+
+            { name: '李京民', text: '他小聲說：“被哥發現了，真沒意思。”' },
+
+            { text: '說完自己又喝了一口，臉皺得更明顯了。' },
+
+            { id: 'day4_pe', text: '第四天體育課。', bg: 'stand' },
+
+            { text: '李京民坐在操場邊綁鞋帶，一點都不想跑步。' },
+
+            { name: '申正煥', text: '“你又偷懶？”' },
+
+            { name: '李京民', text: '“今天不想跑步嘛。”' },
+
+            { name: '申正焕', text: '“会被老师看到的。”' },
+
+            { name: '李京民', text: '“那哥帮我挡一下。”' },
+
+            { text: '申正焕站到他前面。' },
+
+            { text: '这时老师走了过来。' },
+
+            { name: '老师', text: '“你们在这里干嘛？”' },
+
+            { type: 'option', options: [{ text: '【帮忙打掩护，说李京民肚子疼】', next: 'pe_stomach' }, { text: '【跟老师说李京民鞋带散了】', next: 'pe_shoelace' }] },
+
+            { id: 'pe_stomach', name: '申正焕', text: '申正焕面不改色。' },
+
+            { name: '申正焕', text: '“老师，他肚子有点不舒服。”' },
+
+            { text: '老师看了李京民一眼。' },
+
+            { name: '老师', text: '“那你带这位同学去医护室休息一下。”' },
+
+            { name: '李京民', text: '老师走后，李京民抬头，小声说：' },
+
+            { name: '李京民', text: '“哥，你好会哦。”' },
+
+            { name: '申正焕', text: '“别笑，走了。”', next: 'day5_lunch' },
+
+            { id: 'pe_shoelace', name: '申正焕', text: '“老师，他鞋带散了。”' },
+
+            { text: '話音剛開，申正煥直接伸手把李京民拉起來。' },
+
+            { name: '申正焕', text: '“走了。”' },
+
+            { name: '李京民', text: '“欸？哥！”' },
+
+            { text: '李京民被迫加入跑步隊伍。' },
+
+            { name: '李京民', text: '李京民一邊跑一邊抱怨：' },
+
+            { name: '李京民', text: '“不是說幫我擋的嗎！”' },
+
+            { name: '申正焕', text: '“这也是挡。”' },
+
+            { name: '李京民', text: '“哪有这样挡的！”' },
+
+            { text: '申正焕没回头，只是放慢了一点速度。', next: 'day5_lunch' },
+
+            { id: 'day5_lunch', text: '第五天，午後的操場有點曬。', bg: 'stand' },
+
+            { text: '李京民坐在看台陰影裡拆零食。' },
+
+            { text: '申正煥走過去，看見下下他頭頂的數字——6。眉頭幾乎是立刻皺起來的。' },
+
+            { name: '申正焕', text: '“你午饭就吃这个？”' },
+
+            { name: '李京民', text: '李京民抬起頭說：等下回家再吃。”' },
+
+            { name: '申正焕', text: '“那我呢?”' },
+
+            { text: '他說著已經在旁邊坐下。' },
+
+            { name: '李京民', text: '李京民看了他一眼，把零食袋推到中間。' },
+
+            { name: '李京民', text: '“那一起吃吧。”' },
+
+            { text: '兩個人肩並著肩，申正煥一邊吃一邊盯著那個數字，心裡亂得不行。' },
+
+            { name: '申正煥（內心）', text: '明明這麼乖，怎麼會不喜歡我了？' },
+
+            { type: 'option', options: [{ text: '【搶走最後一口零食】', next: 'snatch_snack' }, { text: '【把零食遞到他嘴邊】', next: 'feed_snack' }] },
+
+            { id: 'snatch_snack', name: '李京民', text: '李京民無奈地笑：“哥你是小學生嗎？”', next: 'walk_days' },
+
+            { id: 'feed_snack', name: '李京民', text: '李京民愣了一下，低頭輕輕咬住。', next: 'walk_days' },
+
+            { id: 'walk_days', text: '這幾天，申正煥幾乎每天都會等李京民一起放學。', bg: 'road' },
+
+            { text: '哪怕回家的大方向並不完全一樣，也會走到岔路口才分開。' },
+
+            { type: 'option', options: [{ text: '【直接說“今天一起走”】', next: 'say_walk' }, { text: '【裝作剛好同路】', next: 'fake_walk' }] },
+
+            { id: 'say_walk', text: '申正煥語氣很自然，李京民點頭。', next: 'day7_bench' },
+
+            { id: 'fake_walk', name: '李京民', text: '李京民放慢腳步，等他跟上。', next: 'day7_bench' },
+
+            { id: 'day7_bench', text: '第七天，傍晚的操場風很輕。', bg: 'playground' },
+
+            { text: '兩個人並肩在操場坐著看別人打球。' },
+
+            { name: '李京民', text: '李京民突然問：哥，你高中最開心的時刻是什麼？”' },
+
+            { name: '申正焕', text: '申正焕想了想:“现在吧。”。' },
+
+            { name: '李京民', text: '“现在？”' },
+
+            { name: '申正焕', text: '“嗯。”' },
+
+            { name: '李京民', text: '李京民沒再問，只是低頭笑了一下。' },
+
+            { type: 'option', options: [{ text: '【追問他“那你呢”】', next: 'ask_him' }, { text: '【什麼都不說，繼續坐著】', next: 'keep_quiet' }] },
+
+            { id: 'ask_him', name: '李京民', text: '李京民想了想：“現在……也不壞。”', next: 'uni_talk' },
+
+            { id: 'keep_quiet', text: '兩個人並肩安靜地坐著，享受著傍晚的微風。', next: 'uni_talk' },
+
+            { id: 'uni_talk', name: '申正焕', text: '申正焕突然开口问道：“以后毕业了，你会不会考到很远的大学？”' },
+
+            { name: '李京民', text: '李京民愣了一下，“不是還早嗎？”' },
+
+            { name: '申正焕', text: '“我就是想问问。”' },
+
+            { name: '李京民', text: '短暫的沉默後，李京民輕聲說：' },
+
+            { name: '李京民', text: '“如果可以的話，我想跟正煥哥考同一所大學。”' },
+
+            { type: 'option', options: [{ text: '【伸手揉他的頭】', next: 'rub_head' }, { text: '【什麼都不做，只並肩坐著】', next: 'just_sit' }] },
+
+            { id: 'rub_head', name: '李京民', text: '李京民耳朵慢慢紅了。', next: 'end_thinking' },
+
+            { id: 'just_sit', text: '兩個人誰都沒動，空氣安靜得過分。', next: 'end_thinking' },
+
+            { id: 'end_thinking', text: '看著數字一天天變小。' },
+
+            { text: '申正煥在回家的路上反覆想，如果真的歸零，會發生什麼？' },
+
+            { type: 'option', options: [{ text: '【再等等】', next: 'ending_a' }, { text: '【不能再等了】', next: 'ending_b' }] },
+
+            { id: 'ending_a', text: '那天放學後，操場只剩零星幾個人。', bg: 'playground' },
+
+            { text: '數字也變成了 0。' },
+
+            { text: '申正煥還沒開口，李京民先停下腳步。' },
+
+            { name: '李京民', text: '“哥，我有話想說。”' },
+
+            { name: '李京民', text: '“我...我喜歡你。”' },
+
+            { name: '申正焕', text: '申正焕站在原地，呼吸一滞。' },
+
+            { text: '直到這一刻，他才明白。倒計時結束不是失去，而是走向這一步。' },
+
+            { name: '申正焕', text: '“京民啊，我还以为...你不喜欢哥了呢，哥也喜欢京民尼。”' },
+
+            { text: '風吹過操場。倒計時結束，戀愛，剛剛開始。', next: 'FINISH' },
+
+            { id: 'ending_b', text: '申正焕在跑道边停下。', bg: 'playground' },
+
+            { name: '申正焕', text: '“京民啊，我喜欢你。”' },
+
+            { text: '声音紧张，却很认真。' },
+
+            { name: '李京民', text: '下一秒，李京民輕聲說：' },
+
+            { name: '李京民', text: '“哥，我本來打算今天告白的，怎麼還被搶先了。”' },
+
+            { name: '申正焕', text: '申正焕抬起头发现数字变成 0，心跳停了一拍，原来是这样啊。' },
+
+            { text: '風吹過操場。倒計時結束，戀愛，剛剛開始。', next: 'FINISH' }
+
+        ];
+
+        function startGame(forceReset = false) {
+
+            if (forceReset) currentIndex = 0;
+
+            document.getElementById('cover-page').style.display = 'none';
+
+            document.getElementById('game-play').style.display = 'block';
+
+            document.getElementById('in-game-nav').style.display = 'block';
+
+            renderStep();
+
+        }
+
+        function saveGame() {
+
+            localStorage.setItem('shinmin_save_vfinal_fixed', currentIndex);
+
+            alert('存档成功');
+
+        }
+
+        function loadGame() {
+
+            const saved = localStorage.getItem('shinmin_save_vfinal_fixed');
+
+            if (saved !== null) {
+
+                currentIndex = parseInt(saved);
+
+                startGame(false);
+
+            } else { alert('暂无存档'); }
+
+        }
+
+        function toggleMusic() {
+
+            const player = document.getElementById('bgm-player');
+
+            if (player.paused) {
+
+                player.play().catch(e => {
+
+                    alert('请先与页面互动后再开启音乐');
+
+                });
+
+                alert('音樂已開啟');
+
+            } else {
+
+                player.pause();
+
+                alert('音樂已關閉');
+
+            }
+
+        }
+
+        function renderStep() {
+
+            const current = story[currentIndex];
+
+            const container = document.getElementById('game-container');
+
+            const charImg = document.getElementById('char-img');
+
+            
+
+            if (current.bg && bgs[current.bg]) {
+
+                container.style.backgroundImage = `url(${bgs[current.bg]})`;
+
+            }
+
+            if (current.name) {
+
+                if (current.name === "李京民") {
+
+                    charImg.src = chars['李京民'];
+
+                    charImg.style.opacity = "1";
+
+                } else if (current.name.includes("申正焕")) {
+
+                    charImg.src = chars['申正焕'];
+
+                    charImg.style.opacity = "1";
+
+                } else {
+
+                    charImg.style.opacity = "0";
+
+                }
+
+            } else {
+
+                charImg.style.opacity = "0";
+
+            }
+
+            const nameBox = document.getElementById('name-box');
+
+            const textContent = document.getElementById('text-content');
+
+            const optionsBox = document.getElementById('options-box');
+
+            const nextBtn = document.getElementById('next-btn');
+
+            if (current.type === 'option') {
+
+                nextBtn.style.visibility = 'hidden';
+
+                nameBox.style.display = "none";
+
+                textContent.innerText = "...";
+
+                optionsBox.innerHTML = '';
+
+                current.options.forEach(opt => {
+
+                    const btn = document.createElement('div');
+
+                    btn.className = 'option-item';
+
+                    btn.innerText = opt.text;
+
+                    btn.onclick = () => {
+
+                        currentIndex = story.findIndex(s => s.id === opt.next);
+
+                        renderStep();
+
+                    };
+
+                    optionsBox.appendChild(btn);
+
+                });
+
+            } else {
+
+                nextBtn.style.visibility = 'visible';
+
+                optionsBox.innerHTML = '';
+
+                textContent.innerText = current.text;
+
+                if (current.name) {
+
+                    nameBox.innerText = current.name;
+
+                    nameBox.style.display = "block";
+
+                } else {
+
+                    nameBox.style.display = "none";
+
+                }
+
+            }
+
+        }
+
+        function nextStep() {
+
+            const current = story[currentIndex];
+
+            if (current.type === 'option') return;
+
+            if (current.next === 'FINISH') { showEndPage(); return; }
+
+            if (current.next) { currentIndex = story.findIndex(s => s.id === current.next); }
+
+            else { currentIndex++; }
+
+            renderStep();
+
+        }
+
+        function showEndPage() {
+
+            document.getElementById('game-play').style.display = 'none';
+
+            document.getElementById('in-game-nav').style.display = 'none';
+
+            document.getElementById('end-page').style.display = 'flex';
+
+        }
+
+        function showFinalWish() {
+
+            document.getElementById('end-title').style.display = 'none';
+
+            document.getElementById('end-nav').style.display = 'none';
+
+            document.getElementById('final-wish-box').style.display = 'block';
+
+        }
+
+        function backToCover() {
+
+            document.getElementById('cover-page').style.display = 'flex';
+
+            document.getElementById('game-play').style.display = 'none';
+
+            document.getElementById('in-game-nav').style.display = 'none';
+
+            document.getElementById('end-page').style.display = 'none';
+
+            document.getElementById('final-wish-box').style.display = 'none';
+
+            document.getElementById('end-nav').style.display = 'flex';
+
+            document.getElementById('end-title').style.display = 'block';
+
+        }
+
+        function toggleMenu(id) {
+
+            const m = document.getElementById(id);
+
+            const allDrops = document.querySelectorAll('.dropdown');
+
+            allDrops.forEach(d => { if(d.id !== id) d.style.display = 'none'; });
+
+            m.style.display = m.style.display === 'block' ? 'none' : 'block';
+
+        }
+
+    </script>
+
+</body>
+
+</html>
