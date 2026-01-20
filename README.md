@@ -1,2 +1,0 @@
-# loveshinmin
-shinmin16
